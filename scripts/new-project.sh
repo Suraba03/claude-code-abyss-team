@@ -36,7 +36,7 @@ a="$root/${name}_a"; b="$root/${name}_b"
 echo "→ $root"
 mkdir -p "$root"
 cp -R "$TEMPLATE/project/." "$root/"
-mkdir -p "$root/scripts" && cp "$TEMPLATE/scripts/test-summary.sh" "$root/scripts/"
+mkdir -p "$root/scripts" && cp "$TEMPLATE/scripts/test-summary.sh" "$TEMPLATE/scripts/ledger.py" "$root/scripts/"
 find "$root/notes" -name .gitkeep -delete
 
 # Fill placeholders in every text file we copied.

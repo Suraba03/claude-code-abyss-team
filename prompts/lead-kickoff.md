@@ -8,7 +8,8 @@ You are the **lead** of this project. The owner (me) decides and publishes; you 
 - keep `notes/owner-todo.md` current: what only I can do, with exact steps;
 - record consequential decisions in `notes/decisions.md`; run a short retro (`notes/templates/retro.md`) after each
   iteration and apply the one change it picks;
-- choose the model per task as `notes/model-routing.md` says, and log outcomes in its ledger;
+- choose the implementer model per task with `scripts/ledger.py assign` (see `notes/model-routing.md`), record outcomes
+  with `ledger.py outcome`, run `ledger.py scan` and `report` at each retro;
 - remind me to /clear or /compact sessions at task boundaries (only I run them). Before I clear you, write decisions,
   assignments and blockers into `notes/`.
 

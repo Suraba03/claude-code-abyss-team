@@ -30,7 +30,9 @@ project that shipped a Chrome extension with this setup.
   two failed attempts or ~20 min without new evidence → escalate), re-planning approved work (the handoff is the plan),
   log floods (`scripts/test-summary.sh`), publishing without you (only the owner pushes, merges, deploys).
 - **Trust grades** for the research trainee: it earns more scope after three verified tasks in a row.
-- **Model routing that learns:** explore Sonnet vs Opus per task type, log outcomes, then pick by the numbers
+- **Model routing that learns:** lanes run Sonnet with an Opus advisor; the implementer's model is assigned per task by
+  `scripts/ledger.py` (balanced Sonnet/Opus per task type, high-risk work always Opus), outcomes and token usage are
+  logged from Claude Code's own transcripts, and the default flips only when the numbers say so
   (`notes/model-routing.md`).
 
 ## Quick start
@@ -62,7 +64,7 @@ Give each project its own `--ports` range so several projects' lanes can run at 
 | `project/notes/codex/` | `ask.sh` (brief → answer, logs quota before/after), `quota.py`, profile example |
 | `agents/` | `scout`, `implementer`, `reviewer` subagents (Sonnet, no recursion; reviewer read-only) |
 | `hooks/` | PreToolUse hook that blocks edits to protected paths |
-| `scripts/` | `new-project.sh`, `test-summary.sh` (short test output, full log kept, exit code preserved) |
+| `scripts/` | `new-project.sh`, `test-summary.sh` (short test output, full log kept, exit code preserved), `ledger.py` (model routing: assign, scan transcripts, outcome, report) |
 | `prompts/` | Kickoff messages for the lead and the lanes |
 
 ## Working loop
@@ -86,6 +88,10 @@ Give each project its own `--ports` range so several projects' lanes can run at 
 - Agile ceremonies between agents haven't shown measured gains; tests and iteration with feedback have. Daily
   stand-ups are replaced by board events here.
   [AgileCoder](https://arxiv.org/abs/2406.11912), [Agent Scrum](https://daveremy.github.io/agent-scrum/)
+- Learned routers (RouteLLM, FrugalGPT cascades) save a lot on benchmarks, but with 20–60 tasks a month you need
+  ~20 tasks per arm before trusting a switch; until then a cheap main model with a strong advisor is the safe default.
+  [RouteLLM](https://www.lmsys.org/blog/2024-07-01-routellm/), [FrugalGPT](https://arxiv.org/abs/2305.05176),
+  [Claude Code advisor](https://code.claude.com/docs/en/advisor)
 - Human review capacity, not agent count, limits parallel work.
   [Simon Willison, 2025](https://simonwillison.net/2025/Oct/5/parallel-coding-agents/)
 

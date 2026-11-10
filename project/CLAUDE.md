@@ -46,5 +46,5 @@ Each checkout's `docs/superpowers` is a symlink to `../../notes/superpowers`.
 - **Context hygiene:** when a task is done, end the report with "Context: ready for /clear before the next task".
   After a big phase, suggest "/compact". Only the owner runs these. The lead does the same at work boundaries, after
   writing decisions and assignments into `notes/`.
-- **Models:** see `notes/model-routing.md`. Subagents never launch other agents.
+- **Models:** `notes/model-routing.md` (Sonnet + Opus advisor in lanes; implementer model per task from `scripts/ledger.py`). Start every Agent description with the task ID. Subagents never launch other agents.
 - Backlog: `docs/superpowers/backlog.md`. Decisions: `notes/decisions.md`. Spec: `docs/superpowers/specs/`.
