@@ -1,0 +1,5 @@
+# One glob per line, relative to the checkout. Edits here need the lead's or owner's word.
+.github/workflows/*
+.claude/protected-paths
+.claude/hooks/*
+**/package-lock.json

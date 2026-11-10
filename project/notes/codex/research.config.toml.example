@@ -1,0 +1,37 @@
+# Copy to ~/.codex/__PROJECT__-research.config.toml (new-project.sh prints the command).
+# The lead's research trainee: read-only filesystem, live web search, no plugins or memories.
+model = "<model>"                 # strong model for research; try a cheaper one for routine briefs
+model_reasoning_effort = "high"
+approval_policy = "never"
+web_search = "live"
+default_permissions = "__PROJECT__-research"
+allow_login_shell = false
+developer_instructions = """
+This is an unattended brief from the __PROJECT__ lead. Follow AGENTS.md.
+Do not run an interactive interview; nobody will answer questions.
+State assumptions explicitly; never invent user answers or approvals.
+If essential information is missing, return findings plus the unresolved question.
+"""
+
+[features]
+plugins = false
+apps = false
+memories = false
+hooks = false
+multi_agent = false
+
+[permissions.__PROJECT__-research.filesystem]
+":root" = "deny"
+":minimal" = "read"
+"/opt/homebrew" = "read"
+"/usr/local" = "read"
+"~/.ssh" = "deny"
+
+[permissions.__PROJECT__-research.filesystem."__ROOT__"]
+"." = "read"
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+# add private data folders here as "deny"
+
+[permissions.__PROJECT__-research.network]
+enabled = false   # web search is a separate tool and stays on
