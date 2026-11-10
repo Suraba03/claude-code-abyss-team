@@ -1,20 +1,22 @@
 # claude-code-team-template
 
 **A file-based AI dev team for one person: a lead session, two parallel lanes in git worktrees, review subagents and
-a research trainee — with evidence-based "done" and rules that keep cost and rework down.**
+read-only trainee models — with evidence-based "done", model and effort routing that learns from your own tasks,
+and rules that keep cost and rework down.**
 
 Built for [Claude Code](https://code.claude.com/docs) (works with the [Superpowers](https://github.com/obra/superpowers)
-plugin), with optional [Codex](https://developers.openai.com/codex) as a read-only researcher. Extracted from a real
+plugin). Trainees are any other models you trust less — [Codex](https://developers.openai.com/codex), DeepSeek, GLM —
+kept read-only. Extracted from a real
 project that shipped a Chrome extension with this setup.
 
 ```
             owner (you): decides, reviews evidence, pushes/merges/deploys
                  │
-             lead session ─── briefs ──▶ Codex trainee (read-only research)
+          Riko (lead session) ─── briefs ──▶ trainees: Codex / DeepSeek / GLM (read-only)
      backlog · handoffs · board · checks evidence · retros
           │                         │
-     lane A session            lane B session          (two Claude Code sessions,
-     <name>_a (checkout)       <name>_b (worktree)      own ports, own branches)
+     Regu (lane session)       Nanachi (lane session)  (two Claude Code sessions,
+     <name>_regu (checkout)    <name>_nanachi (worktree)  own ports, own branches)
           │                         │
    implementer → reviewer    implementer → reviewer    (subagents; reviewer never edits)
 ```
@@ -29,51 +31,54 @@ project that shipped a Chrome extension with this setup.
 - **Guardrails against known agent failures:** weakened tests (reviewer audits test changes), loops (stop rule:
   two failed attempts or ~20 min without new evidence → escalate), re-planning approved work (the handoff is the plan),
   log floods (`scripts/test-summary.sh`), publishing without you (only the owner pushes, merges, deploys).
-- **Trust grades** for the research trainee: it earns more scope after three verified tasks in a row.
-- **Model routing that learns:** lanes run Sonnet with an Opus advisor; the implementer's model is assigned per task by
-  `scripts/ledger.py` (balanced Sonnet/Opus per task type, high-risk work always Opus), outcomes and token usage are
-  logged from Claude Code's own transcripts, and the default flips only when the numbers say so
-  (`notes/model-routing.md`).
+- **Trust grades per trainee:** each outside model starts read-only at grade 1 and earns more scope after three
+  verified tasks in a row. `notes/trainee/ask.sh` runs Codex natively, or DeepSeek/GLM through Claude Code pointed at
+  their Anthropic-compatible APIs with read-only tools.
+- **Model and effort routing that learns:** lanes run Sonnet with an Opus advisor; the implementer gets an arm
+  (`model:effort`, e.g. `sonnet:max` vs `opus:high`) per task from `scripts/ledger.py` — balanced per task type at
+  first, high-risk work always on the strong arm. Token usage, model and effort come from Claude Code's own
+  transcripts; the default flips only when the numbers say so (`notes/model-routing.md`).
 
 ## Quick start
 ```bash
 git clone https://github.com/<you>/claude-code-team-template ~/vibe/claude-code-team-template
 ~/vibe/claude-code-team-template/scripts/new-project.sh my_app --remote git@github.com:<you>/my_app.git --ports 200
 ```
-The script creates `~/vibe/my_app/` with `CLAUDE.md`, `AGENTS.md`, `notes/`, lane A (clone) and lane B (worktree), port
-offsets 200/300, local-only files excluded from git, and prints the next steps:
+The script creates `~/vibe/my_app/` with `CLAUDE.md`, `AGENTS.md`, `notes/`, `my_app_regu` (clone) and
+`my_app_nanachi` (worktree), port offsets 200/300, lanes on Sonnet + Opus advisor, local-only files excluded from git, and prints the next steps:
 1. copy `agents/*.md` to `~/.claude/agents/` (once per machine);
 2. optionally add the protected-paths hook (`hooks/`);
-3. optionally add the Codex profile;
+3. optionally set up trainees (`notes/trainee/trainees/*.conf`: Codex profile, DeepSeek or GLM key);
 4. fill the `<…>` placeholders in `CLAUDE.md` ("Never commit", "Product rules");
 5. start three sessions and paste `prompts/lead-kickoff.md` and `prompts/lane-kickoff.md`.
 
-Give each project its own `--ports` range so several projects' lanes can run at once.
+Give each project its own `--ports` range so several projects' lanes can run at once. Role names are
+`riko,regu,nanachi` by default (`--names lead,lane1,lane2` to change).
 
 ## What's inside
 | Path | What |
 |---|---|
 | `project/CLAUDE.md` | Rules for every session, ~50 lines: layout, never-commit, lanes, work rules |
-| `project/AGENTS.md` | Rules for the Codex trainee: read-only, sources and `[verified]` marks |
+| `project/AGENTS.md` | Rules for trainees (any non-Claude model): read-only, sources and `[verified]` marks |
 | `project/notes/board.md` | Claims: task ID, lane, branch @ base SHA, files, state, updated |
 | `project/notes/definition-of-done.md` | The evidence packet a lane sends before "ready for review" |
 | `project/notes/templates/` | Handoff, retro (one change per retro), blameless postmortem |
-| `project/notes/team.md` | Roles, trust grades, the trainee's journal |
-| `project/notes/model-routing.md` | Explore → exploit policy and the outcome ledger |
+| `project/notes/team.md` | Roles, trust grades per trainee, the trainees' journal |
+| `project/notes/model-routing.md` | Model and effort defaults, explore → exploit policy |
 | `project/notes/decisions.md` | Short decision records |
-| `project/notes/codex/` | `ask.sh` (brief → answer, logs quota before/after), `quota.py`, profile example |
+| `project/notes/trainee/` | `ask.sh <brief> [codex\|deepseek\|glm]` (brief → answer, read-only), trainee profiles, Codex quota logger |
 | `agents/` | `scout`, `implementer`, `reviewer` subagents (Sonnet, no recursion; reviewer read-only) |
 | `hooks/` | PreToolUse hook that blocks edits to protected paths |
 | `scripts/` | `new-project.sh`, `test-summary.sh` (short test output, full log kept, exit code preserved), `ledger.py` (model routing: assign, scan transcripts, outcome, report) |
 | `prompts/` | Kickoff messages for the lead and the lanes |
 
 ## Working loop
-1. **Groom** with the lead: backlog by urgency and points; product vs tech debt.
-2. **Assign:** the lead writes a handoff (why, scope, out of scope, acceptance criteria, known facts and failed
-   approaches, files, model) and pings a lane.
+1. **Groom** with Riko: backlog by urgency and points; product vs tech debt.
+2. **Assign:** Riko writes a handoff (why, scope, out of scope, acceptance criteria, known facts and failed
+   approaches, files, `model:effort` from the ledger) and pings Regu or Nanachi.
 3. **Build:** the lane claims the row, branches from fresh main, has the implementer do TDD, and the reviewer check
    the diff and evidence with a fresh context.
-4. **Evidence:** the lane sends the packet. The lead checks it; you read it, say "push", look at CI, merge.
+4. **Evidence:** the lane sends the packet. Riko checks it; you read it, say "push", look at CI, merge.
 5. **Clear:** the lane ends with "Context: ready for /clear before the next task"; you run `/clear`.
 6. **Retro** after an iteration: pick one change (a rule, test, hook or template), apply it, check it next time.
 
@@ -96,4 +101,5 @@ Give each project its own `--ports` range so several projects' lanes can run at 
   [Simon Willison, 2025](https://simonwillison.net/2025/Oct/5/parallel-coding-agents/)
 
 ## Credits and license
-Workflow skills: [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent. MIT license (see `LICENSE`).
+Workflow skills: [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent. Role names are a nod to
+*Made in Abyss* (a lead who sets the course, two companions who do the climbing). MIT license (see `LICENSE`).

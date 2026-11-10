@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "defaultMode": "dontAsk",
+    "deny": [
+      "Edit", "Write", "NotebookEdit", "Bash", "Agent",
+      "Read(./.env)", "Read(./**/.env)", "Read(./**/.env.*)", "Read(~/.ssh/**)"
+    ]
+  }
+}

@@ -7,12 +7,13 @@ lead proposes from the journal below.
 | Who | Grade | Works in | Gets tasks from |
 |---|---|---|---|
 | Owner | — | everything | — |
-| Lead (Claude Code session) | — | `notes/`: backlog, handoffs, research, checks | the owner |
-| Lane A (Claude Code session) | 10 | `__PROJECT___a/` | board + handoff + lead's message |
-| Lane B (Claude Code session) | 10 | `__PROJECT___b/` | same |
+| __LEAD_CAP__, the lead (Claude Code session) | — | `notes/`: backlog, handoffs, research, checks | the owner |
+| __LANE1_CAP__, lane (Claude Code session) | 10 | `__PROJECT_____LANE1__/` | board + handoff + __LEAD_CAP__'s message |
+| __LANE2_CAP__, lane (Claude Code session) | 10 | `__PROJECT_____LANE2__/` | same |
 | Implementer (subagent) | 5 | inside a lane's task | the lane |
 | Reviewer (subagent) | review-only | reads the diff and the evidence, never edits | the lane, after the implementer |
-| Codex (research trainee) | 1 | read-only, `notes/codex/ask.sh` | the lead |
+| Trainee: codex | 1 | read-only, `notes/trainee/ask.sh <brief> codex` | __LEAD_CAP__ |
+| Trainee: deepseek / glm / … (add a row per model) | 1 | read-only, `ask.sh <brief> <trainee>` | __LEAD_CAP__ |
 
 ## What each grade may do
 | Grade | May | Control |
@@ -20,7 +21,7 @@ lead proposes from the journal below.
 | 1 | Research on the web and in the code, fact checks, second opinions. Read-only | lead checks everything against sources |
 | 2 | + grooming and brainstorm critique: backlog, handoffs, specs; own proposals | lead spot-checks |
 | 3 | + document drafts: briefs, specs, store and post texts | lead edits and decides |
-| 4 | + patches: small isolated changes as diff files in `notes/codex/patches/`; a lane reviews and applies | lane review + tests |
+| 4 | + patches: small isolated changes as diff files in `notes/trainee/patches/`; a lane reviews and applies | lane review + tests |
 | 5 | implementer level: small tasks with tests (TDD) in a branch, no push, from a handoff | lane review + reviewer |
 | 7 | a small task end to end (branch, tests, report) in its own folder the owner sets up | lane review, owner check |
 | 10 | lane: tasks from the board, own branches, PRs on the owner's word | owner check before PR |
@@ -35,5 +36,5 @@ At any grade, without the owner's word: no push, merge, deploy, release, or stor
 - `~` (partly useful, honest about gaps) neither raises nor lowers.
 
 ## Journal
-| Date | Task | Brief → answer | Lead's rating | Notes |
-|---|---|---|---|---|
+| Date | Trainee | Task | Brief → answer | Rating | Notes |
+|---|---|---|---|---|---|

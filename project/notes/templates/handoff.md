@@ -1,6 +1,6 @@
 # Handoff: <ID> <title>
 
-From the lead, YYYY-MM-DD. Lane <A|B>. Model: <sonnet|opus> (see `model-routing.md`). Not in git.
+From __LEAD_CAP__, YYYY-MM-DD. Lane: <__LANE1_CAP__|__LANE2_CAP__>. Implementer: <model:effort> from `ledger.py assign` (see `../model-routing.md`). Not in git.
 
 ## Why
 <the user-visible problem or goal; numbers if any>
@@ -15,10 +15,10 @@ From the lead, YYYY-MM-DD. Lane <A|B>. Model: <sonnet|opus> (see `model-routing.
 - [ ] <observable behaviour> → proven by <test / check>
 
 ## Known facts and failed approaches
-- <what the lead already knows; what was tried and didn't work; repro commands>
+- <what __LEAD_CAP__ already knows; what was tried and didn't work; repro commands>
 
 ## Files
 <files you may change; files the other lane holds>
 
 ## Done when
-The packet in `definition-of-done.md`. Ask the lead before a change bigger than ~<N> lines or outside the files above.
+The packet in `definition-of-done.md`. Ask __LEAD_CAP__ before a change bigger than ~<N> lines or outside the files above.

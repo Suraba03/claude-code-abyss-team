@@ -1,4 +1,4 @@
-# Copy to ~/.codex/__PROJECT__-research.config.toml (new-project.sh prints the command).
+# Copy to ~/.codex/__PROJECT__-research.config.toml; trainees/codex.conf points at it.
 # The lead's research trainee: read-only filesystem, live web search, no plugins or memories.
 model = "<model>"                 # strong model for research; try a cheaper one for routine briefs
 model_reasoning_effort = "high"

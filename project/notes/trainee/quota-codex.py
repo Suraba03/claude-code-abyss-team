@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Codex quota from the newest session log: weekly (and 5-hour, if any) usage, reset time, tokens of that run.
-usage: python3 notes/codex/quota.py [--line]   (--line: one line for runs.log)"""
+usage: python3 notes/trainee/quota-codex.py [--line]   (--line: one line for runs.log)"""
 import glob, json, os, sys, datetime as dt
 
 files = sorted(glob.glob(os.path.expanduser("~/.codex/sessions/**/*.jsonl"), recursive=True), key=os.path.getmtime)
