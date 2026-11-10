@@ -10,7 +10,8 @@ Read `CLAUDE.md` in this folder for the project rules. Context lives in `notes/`
 `superpowers/backlog.md`, `superpowers/specs/`, `team.md` (roles and trust grades: each trainee has its own grade and journal).
 
 ## Grades
-Your grade is in `notes/team.md` (every trainee starts at 1). The brief may restate it.
+Your grade (whistle) is in `notes/team.md`. Every trainee starts with a Bell whistle, grade 1, like an apprentice at
+the Seeker Camp: read-only, and every find checked. The brief may restate your grade.
 
 Grade 1 (everyone):
 Research on the web (if your tools allow it) and in the code, fact checks, second opinions. **Read-only.**
