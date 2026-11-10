@@ -107,23 +107,31 @@ up (`notes/team.md`).
   and `~/.ssh` denied.
 
 ## Quick start
+Click **Use this template** (or clone it), then:
 ```bash
-git clone https://github.com/<you>/claude-code-abyss-team ~/vibe/claude-code-abyss-team
 ~/vibe/claude-code-abyss-team/scripts/new-project.sh my_app --remote git@github.com:<you>/my_app.git --ports 200
+~/vibe/my_app/riko
 ```
-The script creates `~/vibe/my_app/`:
-- `CLAUDE.md`, `AGENTS.md` and `notes/`;
-- `my_app_regu` (a clone) and `my_app_nanachi` (a worktree), with port offsets 200 and 300;
-- lanes set to Sonnet with the Opus advisor;
-- local-only files excluded from git.
+That's the whole path. Riko opens on Opus with her role already loaded, reads `notes/`, asks what you're building and
+fills in the project rules with you. When she has put the first tasks on the board, start the lanes:
+```bash
+~/vibe/my_app/regu        # and, in another tab:
+~/vibe/my_app/nanachi
+```
+The same three commands resume a session after `/clear` or a restart; extra arguments go to `claude`
+(`~/vibe/my_app/riko --continue`).
 
-Then it prints the next steps:
-1. Copy `agents/*.md` to `~/.claude/agents/` (once per machine).
-2. Optionally, add the protected-paths hook (`hooks/`).
-3. Optionally, set up apprentices (`notes/trainee/trainees/*.conf`: a Codex profile, a DeepSeek or GLM key).
-4. Fill the `<…>` placeholders in `CLAUDE.md` ("Never commit", "Product rules").
-5. Start Riko (`claude --model opus` in the root) and the two lanes. Paste `prompts/lead-kickoff.md` and
-   `prompts/lane-kickoff.md`.
+Already know what you're building? Write it down and pass `--kickoff idea.md`: it lands in `notes/kickoff.md`, and
+Riko starts from it instead of asking.
+
+What the script creates in `~/vibe/my_app/`:
+- `CLAUDE.md`, `AGENTS.md` and `notes/` (the map), the launchers `riko`, `regu`, `nanachi`;
+- `my_app_regu` (a clone; it needs at least one commit, e.g. a README) and `my_app_nanachi` (a worktree), with port
+  offsets 200 and 300;
+- lanes set to Sonnet with the Opus advisor; local-only files excluded from git.
+
+Once per machine, copy the subagents: `cp -n agents/*.md ~/.claude/agents/`. Optional: the protected-paths hook
+(`hooks/`) and apprentices (`notes/trainee/trainees/*.conf`: a Codex profile, a DeepSeek or GLM key).
 
 Give each project its own `--ports` range, so several expeditions' lanes can run at once.
 
@@ -142,7 +150,7 @@ Give each project its own `--ports` range, so several expeditions' lanes can run
 | `agents/` | `scout`, `implementer`, `reviewer` subagents: Sonnet, no recursion, reviewer read-only |
 | `hooks/` | A PreToolUse hook that blocks edits to protected paths |
 | `scripts/` | See below |
-| `prompts/` | Kickoff messages for Riko and the lanes |
+| `project/notes/prompts/` | Role prompts the launchers open each session with (lead, lane) |
 
 The scripts:
 - `new-project.sh` sets up a new project;

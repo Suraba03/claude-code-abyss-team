@@ -2,24 +2,26 @@
 # Create a lead + two-lane project from this template.
 #
 # usage: scripts/new-project.sh <name> [--remote <git-url>] [--dir <parent>] [--ports <base>] [--branch <main>]
-#                               [--names <lead>,<lane1>,<lane2>]
+#                               [--names <lead>,<lane1>,<lane2>] [--kickoff <file>]
 #   <name>      project name: letters, digits, _ or - (folder and checkout prefix)
 #   --remote    clone this repo into the first lane's folder (else a new local repo with one empty commit)
 #   --dir       parent folder (default: $HOME/vibe)
 #   --ports     port offset for lane 1; lane 2 gets base+100 (default 0). Give each project its own range.
 #   --branch    default branch (default: main; detected from the remote when cloning)
 #   --names     role names (default: riko,regu,nanachi — the lead and the two lanes)
+#   --kickoff   a markdown file saying what you're building; copied to notes/kickoff.md for the lead to read
 #
 # Result:
 #   <dir>/<name>/                 CLAUDE.md, AGENTS.md, notes/, scripts/   (lead's folder, not in git)
 #   <dir>/<name>/<name>_<lane1>/  lane 1: the main checkout
 #   <dir>/<name>/<name>_<lane2>/  lane 2: a git worktree (detached at the default branch)
+#   <dir>/<name>/<lead>, <lane1>, <lane2>   launchers: each starts that session with its role prompt
 set -euo pipefail
 
 TEMPLATE=$(cd "$(dirname "$0")/.." && pwd)
 name=${1:-}; shift || true
 [[ $name =~ ^[A-Za-z0-9_-]+$ ]] || { sed -n '2,12p' "$0"; exit 1; }
-remote=""; parent="$HOME/vibe"; base=0; branch=""; names="riko,regu,nanachi"
+remote=""; parent="$HOME/vibe"; base=0; branch=""; names="riko,regu,nanachi"; kickoff=""
 while [[ $# -gt 0 ]]; do
   case $1 in
     --remote) remote=$2; shift 2;;
@@ -27,6 +29,7 @@ while [[ $# -gt 0 ]]; do
     --ports) base=$2; shift 2;;
     --branch) branch=$2; shift 2;;
     --names) names=$2; shift 2;;
+    --kickoff) kickoff=$2; shift 2;;
     *) echo "unknown option $1" >&2; exit 1;;
   esac
 done
@@ -35,6 +38,7 @@ for n in "$lead" "$lane1" "$lane2"; do [[ $n =~ ^[a-z0-9]+$ ]] || { echo "--name
 cap() { echo "$(echo "${1:0:1}" | tr '[:lower:]' '[:upper:]')${1:1}"; }
 root="$parent/$name"
 [[ -e $root ]] && { echo "$root already exists" >&2; exit 1; }
+[[ -z $kickoff || -f $kickoff ]] || { echo "--kickoff: no such file $kickoff" >&2; exit 1; }
 port_1=$base; port_2=$((base + 100))
 port_var="$(echo "$name" | tr '[:lower:]-' '[:upper:]_')_PORT_OFFSET"
 dir1="$root/${name}_${lane1}"; dir2="$root/${name}_${lane2}"
@@ -52,6 +56,26 @@ while IFS= read -r -d '' f; do
     -e "s#__LEAD__#$lead#g" -e "s#__LANE1__#$lane1#g" -e "s#__LANE2__#$lane2#g" \
     -e "s#__PORT_A__#$port_1#g" -e "s#__PORT_B__#$port_2#g" -e "s#__PORT_VAR__#$port_var#g" "$f" && rm -f "$f.bak"
 done < <(find "$root" -type f \( -name '*.md' -o -name '*.sh' -o -name '*.example' -o -name '*.py' -o -name '*.conf' \) -print0)
+
+# Role prompts per session, and the kickoff.
+mv "$root/notes/prompts/lead.md" "$root/notes/prompts/$lead.md"
+for n in "$lane1" "$lane2"; do sed "s#__ME__#$(cap "$n")#g" "$root/notes/prompts/lane.md" > "$root/notes/prompts/$n.md"; done
+rm "$root/notes/prompts/lane.md"
+[[ -n $kickoff ]] && cp "$kickoff" "$root/notes/kickoff.md"
+
+# Launchers: ./<lead> starts the lead on Opus; ./<lane> starts a lane in its checkout (model from its settings).
+# With no arguments the session opens with its role prompt (also the right way to resume after /clear or a restart);
+# with arguments they go to claude as-is (e.g. ./<lead> --continue).
+launcher() { # file, workdir, model flag, prompt
+  cat > "$1" <<SH
+#!/usr/bin/env bash
+cd "$2" || exit 1
+if [[ \$# -gt 0 ]]; then exec claude $3 "\$@"; fi
+exec claude $3 "\$(cat "$4")"
+SH
+  chmod +x "$1"
+}
+launcher "$root/$lead" "$root" "--model opus" "$root/notes/prompts/$lead.md"
 
 # Lane 1: clone or init.
 if [[ -n $remote ]]; then
@@ -87,21 +111,20 @@ JSON
   done
 done
 
+launcher "$root/$lane1" "$dir1" "" "$root/notes/prompts/$lane1.md"
+launcher "$root/$lane2" "$dir2" "" "$root/notes/prompts/$lane2.md"
+
 L=$(cap "$lead"); A=$(cap "$lane1"); B=$(cap "$lane2")
 cat <<EOF
 
 Done. Team: $L (lead) in $root, $A in $dir1, $B in $dir2.
-Next steps:
-1. Subagents (once per machine, if you don't have them yet):
-     mkdir -p ~/.claude/agents && cp -n "$TEMPLATE"/agents/*.md ~/.claude/agents/
-2. Optional hook that blocks edits to protected paths, per checkout: see $TEMPLATE/hooks/
-3. Trainees (optional): notes/trainee/trainees/*.conf
-     codex:    cp "$root/notes/trainee/codex.config.toml.example" ~/.codex/${name}-research.config.toml  # set the model
-     deepseek: export DEEPSEEK_API_KEY=…   glm: export GLM_API_KEY=…   (check base URLs in the .conf files)
-4. Fill in CLAUDE.md: "Never commit" and "Product rules" (<…> placeholders), and AGENTS.md private paths.
-5. Start three sessions (one terminal tab each):
-     cd "$root" && claude --model opus     # $L: paste $TEMPLATE/prompts/lead-kickoff.md
-     cd "$dir1" && claude                  # $A: paste $TEMPLATE/prompts/lane-kickoff.md
-     cd "$dir2" && claude                  # $B: same
+Start $L:
+     $root/$lead          # $L reads notes/ and asks what you're building (or reads notes/kickoff.md)
+Start the lanes when $L has the first tasks on the board:
+     $root/$lane1   and   $root/$lane2
+The same commands resume a session after /clear or a restart. Extra arguments go to claude ($root/$lead --continue).
+
+Once per machine: mkdir -p ~/.claude/agents && cp -n "$TEMPLATE"/agents/*.md ~/.claude/agents/
+Optional: the protected-paths hook ($TEMPLATE/hooks/), apprentices (notes/trainee/trainees/*.conf).
 Ports: $A offset $port_1, $B offset $port_2 (\$$port_var).
 EOF
