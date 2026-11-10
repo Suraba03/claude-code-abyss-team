@@ -6,56 +6,77 @@ learns from your own tasks, and the rules keep cost and rework down. Themed afte
 descent, and you gather your party on the way down.
 
 Built for [Claude Code](https://code.claude.com/docs) and works with the
-[Superpowers](https://github.com/obra/superpowers) plugin. Extracted from a real project that shipped a Chrome
-extension this way.
+[Superpowers](https://github.com/obra/superpowers) plugin.
+
+**Field-tested.** This setup was developed in practice on
+[anki_manga](https://github.com/Suraba03/anki_manga), which ships as
+[Manga OCR & Mining for Anki](https://chromewebstore.google.com/detail/manga-ocr-mining-for-anki/bgfnpifeeclmpfdcahphaiahgafjppeo)
+in the Chrome Web Store. That project uses a Chrome MV3 extension, on-device OCR, a Cloudflare Worker and CI.
+A lead and two lanes took it from 0.2 to 0.3 in five days. The work included 14 merged PRs, a privacy audit by a
+research apprentice, a real-site test lab and a release.
 
 ```
                       you: the owner. Decides, reads the evidence, pushes / merges / deploys
                         │
         Riko (lead) ─── briefs ──▶ Marulk & other apprentices: Codex / DeepSeek / GLM (read-only)
-  holds the map: backlog · handoffs · board · evidence checks · retros
+  holds the map: backlog · handoffs · board · Ozen's verdict (definition of done) · retros
         │                               │
   Regu (lane)                     Nanachi (lane)              two Claude Code sessions,
   <name>_regu  (checkout)         <name>_nanachi (worktree)   own ports, own branches
         │                               │
-  implementer → Ozen (reviewer)   implementer → Ozen          subagents; Ozen never edits
+  implementer → reviewer          implementer → reviewer      subagents; the reviewer never edits
         └──── Lyza (Opus advisor) is consulted at the hard moments ────┘
 ```
 
 ## The descent
-Every project starts the same way: Riko alone at the edge of the Abyss, with a map and a goal. You don't need the whole
-party on day one. You gather it as you go deeper.
+Every project starts the same way: Riko at the edge of the Abyss, with a map and a goal. You don't need the whole
+party on day one: you gather it as you go deeper, in the order the story does.
 
 | Layer | Project phase | Who joins | What the template gives you there |
 |---|---|---|---|
-| 1 · Edge of the Abyss | idea, kickoff | **Riko**, the lead | `CLAUDE.md`, the backlog, the kickoff prompt: what we're building and why |
-| 2 · Forest of Temptation | first features | **Regu**, the first lane | handoffs, the board, TDD with red→green proof, Ozen's reviews |
-| 3 · Great Fault | parallel work | **Nanachi**, the second lane (a worktree) | separate ports, file claims, WIP limit: two climbers, one rope |
-| 4 · Goblets of Giants | first release | **Marulk**, the apprentice (Codex), plus other apprentices | read-only research briefs, trust grades as whistles, CI and the owner-only publish rule |
-| 5 and below | hard bugs, scale, rework | **Lyza**'s advice (the Opus advisor) when it matters | stop rule, postmortems, decisions log, the model:effort ledger |
+| 1 · Edge of the Abyss | idea, kickoff, first features | **Riko**, the lead, and soon **Regu**, the first lane | `CLAUDE.md`, the backlog, handoffs, the board, TDD with red→green proof |
+| 2 · Forest of Temptation (Seeker Camp) | the work has to prove itself | **Marulk**, the apprentice (Codex), and **Ozen's verdict** | read-only research briefs; whistles as trust grades; nothing is done until it passes Ozen's verdict (`definition-of-done.md`) |
+| 3 · Great Fault | the climb gets steep | CI and the owner-only publish rule | tests on every PR, protected paths, deploy by button |
+| 4 · Goblets of Giants | parallel work | **Nanachi**, the second lane (a git worktree) | separate ports, file claims, WIP limit: two climbers, one rope |
+| 5 and below | hard bugs, scale, rework; more apprentices (DeepSeek, GLM) | **Lyza**'s advice (the Opus advisor) when it matters | stop rule, postmortems, decisions log, the model:effort ledger |
 
-**The Curse of the Abyss:** the deeper you go, the more it costs to come back up. For us that's context. A session
-that has forgotten everything has to climb back through the whole project to re-derive it. So everything lives in
-`notes/`, sessions `/clear` at task boundaries, and nobody climbs back up to re-plan an approved handoff.
+**The Curse of the Abyss:** the deeper you go, the more it costs to come back up. For us that's context: a session that
+has forgotten everything has to climb back through the whole project to re-derive it. So everything lives in `notes/`,
+sessions `/clear` at task boundaries, and nobody climbs back up to re-plan an approved handoff.
 
 ## Your party
 | Name | Role | Model | Lives in |
 |---|---|---|---|
-| **Riko** | Lead: sets the course, holds the map (backlog, board, handoffs), checks evidence, runs retros | Opus | the project root |
-| **Regu** | Lane 1: implements, the first companion | Sonnet + Lyza (Opus advisor) | `<name>_regu/` (main checkout) |
+| **Riko** | Lead: sets the course, holds the map (backlog, board, handoffs), gives Ozen's verdict on evidence, runs retros | Opus | the project root |
+| **Regu** | Lane 1: implements, the first companion | Sonnet + Lyza | `<name>_regu/` (main checkout) |
 | **Nanachi** | Lane 2: implements in parallel | Sonnet + Lyza | `<name>_nanachi/` (git worktree) |
-| **Ozen** the Immovable | `reviewer` subagent: fresh context, never edits, won't budge on weakened tests | Sonnet | a lane's task |
-| implementer, scout | subagents doing the digging | per task, from the ledger | a lane's task |
+| **Lyza** | The advisor: the lanes consult Opus before committing to an approach, on a recurring error and before "done" | Opus | inside the lanes |
 | **Marulk** & apprentices | Trainees: other models (Codex, DeepSeek, GLM), read-only, earn whistles | their own | `notes/trainee/` |
-| **Lyza** | The advisor: Claude consults Opus before committing to an approach, on a recurring error, before "done" | Opus | inside the lanes |
 
-The names are defaults (`--names riko,regu,nanachi`). Subagent files keep plain names (`scout`, `implementer`,
-`reviewer`) so they work with any setup.
+**Ozen's verdict** is the definition of done, and Ozen the Immovable doesn't budge without evidence:
+- the tested commit;
+- red→green proof for every new test;
+- counts and skips;
+- the reviewer's findings resolved;
+- no weakened tests.
 
-**Whistles = trust grades.** Every apprentice starts with a Bell whistle: read-only research, every find checked
-against sources. Three verified finds in a row earn the next whistle: Red (critique), Blue (document drafts), Moon
-(patches as diff files), Black (small implementation tasks). The lanes carry White whistles. A made-up fact or a step
-outside the whistle sends the apprentice back up (`notes/team.md`).
+The workers inside a lane stay plain `scout`, `implementer` and `reviewer` subagents, with no names and no lore. The
+names are defaults: `--names riko,regu,nanachi`.
+
+**Whistles = trust grades.** In the Abyss, the deeper you're trusted to go, the higher your whistle. White Whistles
+dive deepest. Here the same holds: the higher the whistle, the deeper into the project a worker may act on its own.
+
+| Whistle | Grade | May |
+|---|---|---|
+| Bell | 1 | read-only research; every find checked against sources (every apprentice starts here) |
+| Red | 2 | + critique of backlog, specs and plans |
+| Blue | 3 | + document drafts |
+| Moon | 4 | + patches as diff files that a lane applies |
+| Black | 5–7 | + small implementation tasks with tests |
+| White | 10 | the lanes: own branches, PRs on the owner's word |
+
+Three verified finds in a row earn the next whistle. A made-up fact or a step outside the whistle sends a worker back
+up (`notes/team.md`).
 
 ## Why this shape
 - **Files, not chatter.** The board, handoffs, backlog and decisions live in `notes/`. Sessions read files after a
@@ -66,11 +87,13 @@ outside the whistle sends the apprentice back up (`notes/team.md`).
   - the tested commit;
   - red→green proof for each new test;
   - counts and skips;
-  - Ozen's verdict (`notes/definition-of-done.md`).
+  - the reviewer's findings and how each was resolved.
+
+  This is Ozen's verdict (`notes/definition-of-done.md`).
 
   You read a packet instead of re-checking by hand.
 - **Guardrails against known agent failures:**
-  - weakened tests: Ozen audits test changes;
+  - weakened tests: the reviewer audits every test change;
   - loops: the stop rule escalates after two failed attempts or ~20 min without new evidence;
   - re-planning approved work: the handoff is the plan;
   - log floods: `scripts/test-summary.sh`;
@@ -134,9 +157,9 @@ The scripts:
    - known facts and failed approaches;
    - files;
    - the `model:effort` from the ledger.
-3. **Build:** the lane claims the row and branches from fresh main. The implementer does TDD, then Ozen checks the
+3. **Build:** the lane claims the row and branches from fresh main. The implementer does TDD, then the reviewer checks the
    diff and the evidence with a fresh context.
-4. **Evidence:** the lane sends the packet and Riko checks it. You read it, say "push", look at CI and merge.
+4. **Ozen's verdict:** the lane sends the evidence packet and Riko checks it against the definition of done. You read it, say "push", look at CI and merge.
 5. **Clear:** the lane ends with "Context: ready for /clear before the next task", and you run `/clear`.
 6. **Retro** after an iteration: pick one change (a rule, test, hook or template), apply it, and check it next time.
 

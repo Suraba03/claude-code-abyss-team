@@ -1,4 +1,6 @@
-# Definition of done
+# Definition of done (Ozen's verdict)
+
+Ozen the Immovable doesn't budge without evidence. Neither does this list.
 
 A lane reports **ready for review** with this packet (≤250 words plus links). The task is **done** only when the owner
 accepts it.
