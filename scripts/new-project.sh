@@ -46,7 +46,7 @@ dir1="$root/${name}_${lane1}"; dir2="$root/${name}_${lane2}"
 echo "→ $root"
 mkdir -p "$root"
 cp -R "$TEMPLATE/project/." "$root/"
-mkdir -p "$root/scripts" && cp "$TEMPLATE/scripts/test-summary.sh" "$TEMPLATE/scripts/ledger.py" "$root/scripts/"
+mkdir -p "$root/scripts" && cp "$TEMPLATE/skills/test-evidence/test-summary.sh" "$TEMPLATE/scripts/ledger.py" "$root/scripts/"
 find "$root/notes" -name .gitkeep -delete
 
 # Fill placeholders in every text file we copied. __PROJECT__ first: "__PROJECT_____LANE1__" → "<name>_<lane1>".

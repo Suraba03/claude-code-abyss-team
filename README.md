@@ -96,7 +96,7 @@ up (`notes/team.md`).
   - weakened tests: the reviewer audits every test change;
   - loops: the stop rule escalates after two failed attempts or ~20 min without new evidence;
   - re-planning approved work: the handoff is the plan;
-  - log floods: `scripts/test-summary.sh`;
+  - log floods: the `test-evidence` skill;
   - publishing without you: only the owner pushes, merges and deploys.
 - **Model and effort routing that learns.** Lanes run Sonnet with Lyza (Opus) as advisor. `scripts/ledger.py` gives
   the implementer an arm (`model:effort`, e.g. `sonnet:max` vs `opus:high`) per task: balanced per task type at first,
@@ -150,12 +150,21 @@ Give each project its own `--ports` range, so several expeditions' lanes can run
 | `agents/` | `scout`, `implementer`, `reviewer` subagents: Sonnet, no recursion, reviewer read-only |
 | `hooks/` | A PreToolUse hook that blocks edits to protected paths |
 | `scripts/` | See below |
+| `skills/test-evidence/` | A standalone skill: run tests, keep the full log, report counts, exit code and failures |
 | `project/notes/prompts/` | Role prompts the launchers open each session with (lead, lane) |
 
 The scripts:
 - `new-project.sh` sets up a new project;
-- `test-summary.sh` gives short test output, keeps the full log and preserves the exit code;
 - `ledger.py` does the routing: assign, scan transcripts, outcome, report.
+
+## Standalone skill
+`skills/test-evidence/` works without the rest of the template, in any project:
+```bash
+cp -r skills/test-evidence ~/.claude/skills/
+```
+Claude then runs test suites through `test-summary.sh`: the full log stays on disk, and the context and the report
+get only the totals, the exit code and the failures. A project made with `new-project.sh` gets the script in its
+`scripts/` folder.
 
 ## Working loop
 1. **Groom** with Riko: the backlog by urgency and points, product vs tech debt.
